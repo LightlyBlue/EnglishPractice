@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SpeakSprint | 英语口语练习</title>
+    <link rel="stylesheet" href="./styles.css?v=20260404-3" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <aside class="control-panel">
+        <div class="brand-block">
+          <p class="eyebrow">AI English Speaking Lab</p>
+          <h1>SpeakSprint</h1>
+          <p class="brand-copy">
+            选主题、录语音、拿反馈，把一次口语练习完整走完。
+          </p>
+        </div>
+
+        <div class="panel-switcher">
+          <button
+            id="panelMenuBtn"
+            class="panel-menu-btn"
+            type="button"
+            aria-haspopup="menu"
+            aria-expanded="false"
+            aria-controls="panelMenu"
+          >
+            <span id="currentPanelLabel">Practice Panel</span>
+            <span class="panel-menu-caret" aria-hidden="true">▾</span>
+          </button>
+          <div id="panelMenu" class="panel-menu hidden" role="menu" hidden>
+            <button id="practiceMenuItem" class="panel-menu-item is-active" type="button" role="menuitem">
+              Practice Panel
+            </button>
+            <button id="configMenuItem" class="panel-menu-item" type="button" role="menuitem">
+              Basic Settings
+            </button>
+          </div>
+        </div>
+
+        <div id="panelStage" class="panel-stage panel-stage-pending">
+          <section class="sidebar-panel panel-viewport">
+            <section class="card stack panel-card panel-card-left">
+              <div id="practicePanel" class="panel-content">
+                <div>
+                  <h2>练习设置</h2>
+                  <p class="section-copy">先选主题和水平，再开始一轮新的口语练习。</p>
+                </div>
+
+                <label class="field">
+                  <span>主题预设</span>
+                  <select id="topicPreset">
+                    <option value="travel">旅行沟通</option>
+                    <option value="interview">英语面试</option>
+                    <option value="daily">日常闲聊</option>
+                    <option value="meeting">工作会议</option>
+                    <option value="study">校园学习</option>
+                    <option value="custom">自定义主题</option>
+                  </select>
+                </label>
+
+                <label class="field">
+                  <span>自定义主题</span>
+                  <textarea
+                    id="customTopic"
+                    rows="3"
+                    placeholder="例如：我想练习在机场办理值机时的英文对话。"
+                  ></textarea>
+                </label>
+
+                <label class="field">
+                  <span>英语水平</span>
+                  <select id="level">
+                    <option value="beginner">Beginner</option>
+                    <option value="intermediate" selected>Intermediate</option>
+                    <option value="advanced">Advanced</option>
+                  </select>
+                </label>
+
+                <div class="button-row compact-actions session-actions">
+                  <button id="startSessionBtn" class="primary-btn">开始练习</button>
+                  <button id="endSessionBtn" class="ghost-btn" disabled>结束总结</button>
+                </div>
+              </div>
+
+              <div id="configPanel" class="panel-content hidden" hidden>
+                <div>
+                  <h2>基础配置</h2>
+                  <p class="section-copy">API Key 仅保存在当前浏览器的本地存储中。</p>
+                </div>
+
+                <label class="field">
+                  <span>API Key</span>
+                  <input id="apiKey" type="password" placeholder="复制密钥后粘贴到这里" autocomplete="off" />
+                </label>
+
+                <label class="field">
+                  <span>API Base URL</span>
+                  <input
+                    id="apiBaseUrl"
+                    type="text"
+                    value="https://api.gptsapi.net"
+                    placeholder="https://api.openai.com"
+                    autocomplete="off"
+                  />
+                  <small class="field-hint">
+                    想使用 OpenAI 官方语音时，建议填 `https://api.openai.com`。
+                  </small>
+                </label>
+
+                <section class="model-status-card">
+                  <div class="model-status-row">
+                    <span>对话模型状态</span>
+                    <strong id="chatModelStatus" class="mini-status pending">未验证</strong>
+                  </div>
+                  <div class="model-status-row">
+                    <span>转写模型状态</span>
+                    <strong id="transcribeModelStatus" class="mini-status pending">未验证</strong>
+                  </div>
+                  <div class="model-status-row">
+                    <span>语音模型状态</span>
+                    <strong id="ttsModelStatus" class="mini-status pending">未验证</strong>
+                  </div>
+                  <p id="modelStatusNote" class="field-hint">
+                    状态会根据真实请求结果更新，不是静态展示。
+                  </p>
+                </section>
+              </div>
+            </section>
+
+            <section class="card stack panel-card panel-card-right recorder-card">
+              <div id="practicePanelSecondary" class="panel-content">
+                <div>
+                  <h2>录音发送</h2>
+                  <p class="section-copy">
+                    AI 说完后即可录音，最长 90 秒。你可以随时停止并发送。
+                  </p>
+                </div>
+
+                <div class="record-status">
+                  <span id="recordIndicator" class="status-pill idle">等待开始</span>
+                  <strong id="timerLabel">90s</strong>
+                </div>
+
+                <div class="button-row compact-actions">
+                  <button id="recordBtn" class="primary-btn" disabled>开始录音</button>
+                  <button id="sendBtn" class="ghost-btn" disabled>发送录音</button>
+                </div>
+
+                <section class="live-caption">
+                  <div class="caption-head">
+                    <span>实时识别</span>
+                    <small id="captionStatus">待命中</small>
+                  </div>
+                  <p id="liveTranscript" class="live-transcript empty">
+                    开始录音后，这里会尽量实时显示你正在说的话。
+                  </p>
+                </section>
+
+                <audio id="draftPlayer" controls class="audio-player hidden"></audio>
+              </div>
+
+              <div id="configPanelSecondary" class="panel-content hidden" hidden>
+                <div>
+                  <h2>模型设置</h2>
+                  <p class="section-copy">在这里切换对话、转写和语音播放所用模型。</p>
+                </div>
+
+                <div class="field">
+                  <span>对话模型</span>
+                  <select id="chatModelPreset">
+                    <option value="gpt-4.1-mini">gpt-4.1-mini</option>
+                    <option value="gpt-4.1">gpt-4.1</option>
+                    <option value="gpt-4o-mini">gpt-4o-mini</option>
+                    <option value="gpt-4o">gpt-4o</option>
+                    <option value="custom">自定义模型名</option>
+                  </select>
+                  <input
+                    id="chatModel"
+                    type="text"
+                    value="gpt-4.1-mini"
+                    placeholder="输入自定义对话模型名"
+                    class="hidden"
+                  />
+                  <small class="field-hint">用于 AI 开场、聊天、评分、纠错、润色和总结。</small>
+                </div>
+
+                <div class="field">
+                  <span>转写模型</span>
+                  <select id="transcribeModelPreset">
+                    <option value="whisper-1">whisper-1</option>
+                    <option value="gpt-4o-transcribe">gpt-4o-transcribe</option>
+                    <option value="gpt-4o-mini-transcribe">gpt-4o-mini-transcribe</option>
+                    <option value="custom">自定义模型名</option>
+                  </select>
+                  <input
+                    id="transcribeModel"
+                    type="text"
+                    value="whisper-1"
+                    placeholder="输入自定义转写模型名"
+                    class="hidden"
+                  />
+                  <small class="field-hint">用于把你的语音转成文字，所填 API Key 也必须支持它。</small>
+                </div>
+
+                <div class="field">
+                  <span>语音模型</span>
+                  <select id="ttsModelPreset">
+                    <option value="gpt-4o-mini-tts">gpt-4o-mini-tts</option>
+                    <option value="tts-1">tts-1</option>
+                    <option value="tts-1-hd">tts-1-hd</option>
+                    <option value="custom">自定义模型名</option>
+                  </select>
+                  <input
+                    id="ttsModel"
+                    type="text"
+                    value="gpt-4o-mini-tts"
+                    placeholder="输入自定义语音模型名"
+                    class="hidden"
+                  />
+                </div>
+
+                <div class="field">
+                  <span>语音人声</span>
+                  <select id="ttsVoice">
+                    <option value="alloy">alloy</option>
+                    <option value="ash">ash</option>
+                    <option value="ballad">ballad</option>
+                    <option value="coral">coral</option>
+                    <option value="echo">echo</option>
+                    <option value="fable">fable</option>
+                    <option value="nova">nova</option>
+                    <option value="onyx">onyx</option>
+                    <option value="sage">sage</option>
+                    <option value="shimmer">shimmer</option>
+                    <option value="verse">verse</option>
+                    <option value="marin">marin</option>
+                    <option value="cedar">cedar</option>
+                  </select>
+                  <small class="field-hint">
+                    AI 回复和“播放润色句子”会优先使用这里的人声。
+                  </small>
+                </div>
+              </div>
+            </section>
+          </section>
+        </div>
+      </aside>
+
+      <main class="main-panel">
+        <section class="content-grid">
+          <section class="card chat-card">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Conversation</p>
+                <h2>对话区</h2>
+                <p class="section-copy compact-copy">
+                  AI 先开口，你来接住话题。每轮练习都会保留你的录音，并给出发音、语法、地道度评分，以及纠错和润色建议。
+                </p>
+              </div>
+              <span id="sessionBadge" class="status-pill idle">未开始</span>
+            </div>
+            <div id="chatLog" class="chat-log"></div>
+          </section>
+
+          <section class="card recordings-card">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Your Voice</p>
+                <h2>录音记录</h2>
+              </div>
+            </div>
+            <div id="recordingsList" class="recordings-list empty-state">
+              发送语音后，这里会保存你的录音和对应反馈。
+            </div>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <template id="messageTemplate">
+      <article class="message">
+        <div class="message-meta"></div>
+        <div class="message-body"></div>
+      </article>
+    </template>
+
+    <template id="recordingTemplate">
+      <article class="recording-item">
+        <div class="recording-top">
+          <div>
+            <p class="eyebrow">Voice Turn</p>
+            <h3></h3>
+          </div>
+          <div class="recording-top-actions">
+            <span class="status-pill success">已保存</span>
+            <button class="ghost-btn collapse-btn">展开详情</button>
+          </div>
+        </div>
+        <div class="recording-details hidden">
+          <p class="recording-transcript"></p>
+          <div class="feedback-stack"></div>
+        </div>
+      </article>
+    </template>
+
+    <script src="./app.js?v=20260404-3" type="module"></script>
+  </body>
+</html>
