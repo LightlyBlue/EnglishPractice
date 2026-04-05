@@ -15,6 +15,7 @@
   --radius-xl: 28px;
   --radius-lg: 20px;
   --radius-md: 14px;
+  --sidebar-card-height: clamp(480px, 62vh, 640px);
 }
 
 * {
@@ -95,14 +96,20 @@ select {
 }
 
 .panel-card {
+  display: grid;
   height: 100%;
+  min-height: var(--sidebar-card-height);
   align-content: start;
+  overflow: hidden;
 }
 
 .panel-content {
   display: grid;
   gap: 8px;
+  min-height: 100%;
   align-content: start;
+  overflow: auto;
+  padding-right: 4px;
 }
 
 .panel-card-left,
@@ -340,8 +347,9 @@ button:disabled {
   width: 100%;
 }
 
-.recorder-card {
+.recorder-panel-content {
   grid-template-rows: auto auto auto 1fr auto;
+  min-height: 100%;
 }
 
 .compact-copy {
@@ -554,7 +562,7 @@ button:disabled {
   background: rgba(255, 255, 255, 0.58);
 }
 
-.recorder-card .live-caption {
+.recorder-panel-content .live-caption {
   align-content: start;
   min-height: 0;
   height: 100%;
@@ -656,6 +664,16 @@ button:disabled {
   .content-grid,
   .panel-viewport {
     grid-template-columns: 1fr;
+  }
+
+  .panel-card {
+    min-height: auto;
+  }
+
+  .panel-content {
+    min-height: auto;
+    overflow: visible;
+    padding-right: 0;
   }
 
   .chat-card,
