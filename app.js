@@ -130,28 +130,25 @@ function bootstrap() {
 }
 
 function applyInitialSidebarLayout() {
-  stabilizeSidebarLayout();
+  const waitForLoad =
+    document.readyState === "complete"
+      ? Promise.resolve()
+      : new Promise((resolve) => {
+          window.addEventListener("load", resolve, { once: true });
+        });
 
-  requestAnimationFrame(() => {
+  const waitForFonts = document.fonts?.ready
+    ? document.fonts.ready.catch(() => undefined)
+    : Promise.resolve();
+
+  Promise.all([waitForLoad, waitForFonts]).then(() => {
     stabilizeSidebarLayout();
-    revealPanelStage();
-  });
 
-  if (document.fonts?.ready) {
-    document.fonts.ready.then(() => {
+    requestAnimationFrame(() => {
       stabilizeSidebarLayout();
       revealPanelStage();
     });
-  }
-
-  window.addEventListener(
-    "load",
-    () => {
-      stabilizeSidebarLayout();
-      revealPanelStage();
-    },
-    { once: true },
-  );
+  });
 }
 
 function stabilizeSidebarLayout() {
