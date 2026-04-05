@@ -16,7 +16,7 @@
 例如：
 
 ```bash
-cd /Users/yusanjin/EnglishLearning
+cd /path/to/EnglishLearning
 python3 -m http.server 4173
 ```
 
@@ -27,7 +27,7 @@ python3 -m http.server 4173
 ## 使用说明
 
 1. 输入你的 API Key。
-2. 根据你使用的服务填写 `API Base URL`。
+2. 手动填写 `API Base URL`。
    - OpenAI 官方：`https://api.openai.com`
    - 兼容网关：填写对应地址
 3. 选择主题预设，或切到“自定义主题”后填写练习场景。
@@ -40,7 +40,7 @@ python3 -m http.server 4173
    - 生成评分、纠错、润色
    - 让 AI 继续对话
    - 优先使用 OpenAI/兼容接口的 TTS 语音播放回复
-8. 点击“结束并总结”可拿到本轮对话总评。
+8. 点击“结束总结”可拿到本轮对话总评。
 
 ## 技术说明
 
@@ -50,7 +50,7 @@ python3 -m http.server 4173
 
 ## 注意事项
 
-- 默认 API 基础地址已切换为 `https://api.gptsapi.net`，复制密钥后即可使用。
+- `API Key` 和 `API Base URL` 默认都留空，需要手动填写；如果你本地浏览器之前保存过值，页面仍会自动带出。
 - 默认转写模型已改为兼容性更高的 `whisper-1`；如果你的网关支持别的模型，也可以手动修改。
 - 前端录音会优先编码为标准 `WAV` 再上传，以提高对 OpenAI 兼容网关的音频解析兼容性。
 - 语音回复优先调用 `/v1/audio/speech`；若失败，会回退到浏览器本地朗读。

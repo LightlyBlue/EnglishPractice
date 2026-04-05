@@ -2,7 +2,7 @@ const MAX_RECORDING_MS = 90_000;
 const DB_NAME = "speaksprint-db";
 const DB_VERSION = 1;
 const RECORDING_STORE = "recordings";
-const DEFAULT_API_BASE_URL = "https://api.gptsapi.net";
+const DEFAULT_API_BASE_URL = "";
 const DEFAULT_CHAT_MODEL = "gpt-4.1-mini";
 const DEFAULT_TRANSCRIBE_MODEL = "whisper-1";
 const DEFAULT_TTS_MODEL = "gpt-4o-mini-tts";
@@ -357,8 +357,14 @@ async function startSession() {
     return;
   }
 
+  const apiBaseUrl = sanitizeBaseUrl(els.apiBaseUrl.value.trim());
+  if (!apiBaseUrl) {
+    showToast("请先填写可用的 API Base URL。");
+    return;
+  }
+
   persistField("apiKey", apiKey);
-  persistField("apiBaseUrl", sanitizeBaseUrl(els.apiBaseUrl.value.trim()));
+  persistField("apiBaseUrl", apiBaseUrl);
   persistResolvedModel("chat");
   persistResolvedModel("transcribe");
   persistResolvedModel("tts");
@@ -1816,7 +1822,7 @@ function replayMessage(item) {
 }
 
 function sanitizeBaseUrl(value) {
-  return value.replace(/\/+$/, "") || DEFAULT_API_BASE_URL;
+  return value.replace(/\/+$/, "");
 }
 
 function setBusy(button, busy, label) {
