@@ -93,6 +93,7 @@ const els = {
   startSessionBtn: document.querySelector("#startSessionBtn"),
   endSessionBtn: document.querySelector("#endSessionBtn"),
   recordBtn: document.querySelector("#recordBtn"),
+  redoBtn: document.querySelector("#redoBtn"),
   sendBtn: document.querySelector("#sendBtn"),
   timerLabel: document.querySelector("#timerLabel"),
   recordIndicator: document.querySelector("#recordIndicator"),
@@ -190,6 +191,7 @@ function bindEvents() {
   els.startSessionBtn.addEventListener("click", startSession);
   els.endSessionBtn.addEventListener("click", endSessionWithReview);
   els.recordBtn.addEventListener("click", startRecording);
+  els.redoBtn.addEventListener("click", redoRecording);
   els.sendBtn.addEventListener("click", sendCurrentRecording);
 }
 
@@ -506,6 +508,7 @@ async function startRecording() {
 
       els.recordBtn.disabled = false;
       els.recordBtn.textContent = "暂停录音";
+      els.redoBtn.disabled = false;
       els.sendBtn.disabled = false;
       setRecordState("录音中", "recording");
       return;
@@ -534,6 +537,25 @@ function stopRecording() {
   finalizeRecording();
 }
 
+function redoRecording() {
+  if (!state.sessionActive) {
+    return;
+  }
+
+  state.isRecording = false;
+  state.isRecordingPaused = false;
+  clearInterval(state.countdownInterval);
+  state.countdownInterval = null;
+  stopLiveSpeechRecognition();
+  teardownAudioNodes();
+  state.pcmChunks = [];
+  state.remainingRecordingMs = MAX_RECORDING_MS;
+  clearDraftPlayer();
+  resetTimer();
+  resetLiveTranscript();
+  unlockRecording();
+}
+
 function pauseRecording() {
   if (!state.isRecording) {
     return;
@@ -546,6 +568,7 @@ function pauseRecording() {
   clearInterval(state.countdownInterval);
   state.countdownInterval = null;
   els.recordBtn.textContent = "继续录音";
+  els.redoBtn.disabled = false;
   els.sendBtn.disabled = false;
   setRecordState("录音已暂停", "idle");
 }
@@ -563,6 +586,7 @@ function resumeRecording() {
   state.countdownInterval = window.setInterval(updateCountdown, 250);
   updateCountdown();
   els.recordBtn.textContent = "暂停录音";
+  els.redoBtn.disabled = false;
   els.sendBtn.disabled = false;
   setRecordState("录音中", "recording");
 }
@@ -587,6 +611,7 @@ function finalizeRecording() {
   els.draftPlayer.classList.remove("hidden");
   els.sendBtn.disabled = false;
   els.recordBtn.disabled = false;
+  els.redoBtn.disabled = false;
   els.recordBtn.textContent = "继续录音";
   setRecordState("录音已完成", "success");
 }
@@ -690,6 +715,7 @@ function unlockRecording() {
   state.isRecording = false;
   state.isRecordingPaused = false;
   els.recordBtn.disabled = false;
+  els.redoBtn.disabled = !hasRecordingDraft();
   els.recordBtn.textContent = state.currentBlob ? "继续录音" : "开始录音";
   els.sendBtn.disabled = false;
   setRecordState("可开始录音", "success");
@@ -697,6 +723,7 @@ function unlockRecording() {
 
 function disableRecordingControls() {
   els.recordBtn.disabled = true;
+  els.redoBtn.disabled = true;
   els.sendBtn.disabled = true;
 }
 
@@ -713,6 +740,10 @@ function clearDraftPlayer() {
   state.currentBlobUrl = "";
   els.draftPlayer.removeAttribute("src");
   els.draftPlayer.classList.add("hidden");
+}
+
+function hasRecordingDraft() {
+  return Boolean(state.currentBlob || state.pcmChunks.length || state.isRecording || state.isRecordingPaused);
 }
 
 function resetLiveTranscript() {

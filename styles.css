@@ -332,9 +332,14 @@ button:disabled {
 }
 
 .compact-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-height: 40px;
   padding: 8px 10px;
   font-size: 0.82rem;
+  line-height: 1.2;
+  text-align: center;
   white-space: nowrap;
   width: 100%;
 }
@@ -342,12 +347,22 @@ button:disabled {
 #startSessionBtn,
 #endSessionBtn,
 #recordBtn,
+#redoBtn,
 #sendBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-height: 40px;
   padding: 8px 10px;
   font-size: 0.82rem;
+  line-height: 1.2;
+  text-align: center;
   white-space: nowrap;
   width: 100%;
+}
+
+.recording-actions {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .recorder-panel-content {
